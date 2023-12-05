@@ -6,6 +6,7 @@ from .models import Order
 from .serializers import OrderSerializer
 from unittest.mock import patch, MagicMock
 
+
 class OrderModelTest(TestCase):
     def test_order_creation(self):
         """
@@ -22,7 +23,7 @@ class OrderModelTest(TestCase):
             "product_code": "test_product",
             "customer_fullname": "Test Customer",
             "product_name": "Test Product",
-            "total_amount": 50.0
+            "total_amount": 50.0,
         }
 
         # Act
@@ -37,6 +38,7 @@ class OrderModelTest(TestCase):
         self.assertEqual(order.product_name, "Test Product")
         self.assertEqual(order.total_amount, 50.0)
         self.assertIsNotNone(order.created_at)
+
 
 class OrderSerializerTest(TestCase):
     def test_order_serializer_valid_data(self):
@@ -54,7 +56,7 @@ class OrderSerializerTest(TestCase):
             "product_code": "test_product",
             "customer_fullname": "Test Customer",
             "product_name": "Test Product",
-            "total_amount": 50.0
+            "total_amount": 50.0,
         }
 
         # Act
@@ -86,7 +88,7 @@ class OrderSerializerTest(TestCase):
         invalid_data = {
             "user_id": "7c11ee2741",
             "product_code": "test_product",
-            "total_amount": -10.0  # Negative total amount
+            "total_amount": -10.0,  # Negative total amount
         }
 
         # Act
@@ -95,6 +97,7 @@ class OrderSerializerTest(TestCase):
 
         # Assert
         self.assertFalse(is_valid)
+
 
 class OrderCreateViewTest(TestCase):
     def setUp(self):
@@ -108,8 +111,8 @@ class OrderCreateViewTest(TestCase):
         """
         self.client = APIClient()
 
-    @patch('orders.views.requests.get')
-    @patch('orders.views.pika.BlockingConnection')
+    @patch("orders.views.requests.get")
+    @patch("orders.views.pika.BlockingConnection")
     def test_create_order(self, mock_rabbitmq, mock_get):
         """
         Test the creation of an order using the OrderCreateView.
@@ -121,39 +124,54 @@ class OrderCreateViewTest(TestCase):
             None
         """
         # Arrange
-        url = reverse('order-create')
+        url = reverse("order-create")
         data = {
             "user_id": "test_user",
             "product_code": "test_product",
             "customer_fullname": "Test Customer",
             "product_name": "Test Product",
-            "total_amount": 50.0
+            "total_amount": 50.0,
         }
 
         # Mock the user-service and product-service responses
         user_service_response = MagicMock()
         user_service_response.status_code = 200
-        user_service_response.json.return_value = {"firstName": "Test", "lastName": "User"}
+        user_service_response.json.return_value = {
+            "firstName": "Test",
+            "lastName": "User",
+        }
 
         product_service_response = MagicMock()
         product_service_response.status_code = 200
-        product_service_response.json.return_value = {"name": "Test Product", "price": 50.0}
+        product_service_response.json.return_value = {
+            "name": "Test Product",
+            "price": 50.0,
+        }
 
-        mock_get.side_effect = [user_service_response, product_service_response]  # User-service, Product-service
+        mock_get.side_effect = [
+            user_service_response,
+            product_service_response,
+        ]  # User-service, Product-service
 
         # Mock RabbitMQ connection and channel
         mock_channel = MagicMock()
-        mock_rabbitmq.return_value.__enter__.return_value.channel.return_value = mock_channel
+        mock_rabbitmq.return_value.__enter__.return_value.channel.return_value = (
+            mock_channel
+        )
 
         # Act
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, data, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertIsNotNone(response.data['id'])
-        self.assertEqual(response.data['user_id'], "test_user")
-        self.assertEqual(response.data['product_code'], "test_product")
-        self.assertEqual(response.data['customer_fullname'], "Test User")  # Comes from mocked response
-        self.assertEqual(response.data['product_name'], "Test Product")  # Comes from mocked response
-        self.assertEqual(response.data['total_amount'], 50.0)
-        self.assertIsNotNone(response.data['created_at'])
+        self.assertIsNotNone(response.data["id"])
+        self.assertEqual(response.data["user_id"], "test_user")
+        self.assertEqual(response.data["product_code"], "test_product")
+        self.assertEqual(
+            response.data["customer_fullname"], "Test User"
+        )  # Comes from mocked response
+        self.assertEqual(
+            response.data["product_name"], "Test Product"
+        )  # Comes from mocked response
+        self.assertEqual(response.data["total_amount"], 50.0)
+        self.assertIsNotNone(response.data["created_at"])
