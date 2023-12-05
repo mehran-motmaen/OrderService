@@ -23,3 +23,4 @@ class Order(models.Model):
     product_name = models.CharField(max_length=255, blank=True, null=True)
     total_amount = models.FloatField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+

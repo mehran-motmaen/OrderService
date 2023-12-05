@@ -16,12 +16,12 @@ Make sure you have the following installed on your machine:
    git clone 
    cd your-repository
 
+
 2. **Build and Run Docker Containers:**
   ```bash
    docker-compose up --build
-   
-   
+   ```
 3. **Access the API:**
   ```bash
    http POST http://localhost:8000/api/orders/ user_id="7c11ee2741" product_code="veggie-box"
-
+  ```
