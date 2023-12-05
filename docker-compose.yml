@@ -2,13 +2,27 @@ version: '3'
 
 services:
 
-  # TO BE IMPLEMENTED
   order-service:
-    image: hello-world
+    build:
+      context: order_service/
+      dockerfile: Dockerfile
+    depends_on:
+      - database
+      - rabbitmq
+    environment:
+      - DJANGO_SETTINGS_MODULE=order_service.settings
+    command: sh -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./order_service:/app
+    ports:
+      - "8000:8000"
 
-  # TO BE IMPLEMENTED
   database:
-    image: hello-world
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: order_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
 
   product-service:
     image: rodolpheche/wiremock:2.23.2-alpine
@@ -16,7 +30,7 @@ services:
     volumes:
       - ./wiremock/product-service/stubs:/home/wiremock
     ports:
-    - "8081:8080"
+      - "8081:8080"
 
   user-service:
     image: rodolpheche/wiremock:2.23.2-alpine
@@ -24,7 +38,7 @@ services:
     volumes:
       - ./wiremock/user-service/stubs:/home/wiremock
     ports:
-    - "8082:8080"
+      - "8082:8080"
 
   rabbitmq:
     image: rabbitmq:3.7.15-management-alpine
